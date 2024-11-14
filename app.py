@@ -199,17 +199,57 @@ def compute():
 @app.route('/slowloris')
 def slowloris_test():
     """Slowloris 취약점 테스트를 위한 엔드포인트"""
-    time.sleep(1)  # 의도적인 지연
-    return "Slowloris Test Complete", 200
+    response = ""
+    for i in range(10000):  # 많은 양의 데이터
+        response += f"데이터 청크 {i}\n"
+        if i % 100 == 0:  # 100줄마다
+            time.sleep(0.1)  # 0.1초 지연
+    return response, 200
 
 @app.route('/flood', methods=['GET', 'POST'])
 def flood_test():
     """플러딩 테스트를 위한 엔드포인트"""
     if request.method == 'POST':
+        # 대량의 데이터 처리 시뮬레이션
         data = request.get_data()
-        time.sleep(0.1)
-        return f"Received: {len(data)} bytes", 200
-    return "Flood Test Endpoint", 200
+        
+        # 메모리 부하를 위한 큰 리스트 생성
+        memory_load = [x for x in range(100000)]
+        
+        # CPU 부하
+        matrix = np.random.rand(500, 500)
+        result = np.dot(matrix, matrix)
+        
+        # I/O 부하
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+            temp_file.write("X" * len(data) * 2)  # 받은 데이터의 2배 크기
+            temp_file_path = temp_file.name
+            
+        # 파일 읽기
+        with open(temp_file_path, 'r') as f:
+            content = f.read()
+            
+        # 파일 삭제
+        os.remove(temp_file_path)
+        
+        # 의도적인 지연
+        time.sleep(0.5)  # 0.5초 지연
+        
+        return f"Processed: {len(data)} bytes with heavy computation", 200
+    
+    # GET 요청도 부하를 주도록 수정
+    else:
+        # CPU 부하
+        matrix = np.random.rand(200, 200)
+        result = np.dot(matrix, matrix)
+        
+        # 메모리 부하
+        memory_load = [x for x in range(50000)]
+        
+        # 의도적인 지연
+        time.sleep(0.2)  # 0.2초 지연
+        
+        return "Flood Test Endpoint (with heavy computation)", 200
 
 if __name__ == '__main__':
     # 로깅 설정
